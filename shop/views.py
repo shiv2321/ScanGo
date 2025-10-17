@@ -60,7 +60,7 @@ def product_details(request, pk):
             product.delete()
             return Response({'message':'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET', 'POST'])
+@api_view(['POST', 'PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def add_to_cart(request):
@@ -68,39 +68,112 @@ def add_to_cart(request):
     print("Request hit to cart")
     print(f"user {user}")
     print(f"Request Type: {request.method}")
-    if request.method == 'POST':
-        try:
-            if user.role != 'customer':
-                return Response({'error':'Permission Denied Only cutomer can access Cart'},status=status.HTTP_403_FORBIDDEN)
-            product_id = request.data.get('product_id')
-            print(f"product ID ;- {product_id}")
-            if not product_id:
-                return Response({'err':'producyt_id is required'},status=status.HTTP_400_BAD_REQUEST)
-            quantity = int(request.data.get('quantity', 1))
-            product = Product.objects.filter(id = product_id).first()
-            if not product:
-                return Response({'meesage':'Product Not Found'},status=status.HTTP_404_NOT_FOUND)
+    if user.role != 'customer':
+        return Response({'error':'Permission Denied Only cutomer can access Cart'},status=status.HTTP_403_FORBIDDEN)
+    try:
+        product_id = request.data.get('product_id')
+        print(f"product ID ;- {product_id}")
+        if not product_id:
+            return Response({'err':'producyt_id is required'},status=status.HTTP_400_BAD_REQUEST)
+        quantity = int(request.data.get('quantity', 1))
+        if quantity < 0:
+            return Response(
+                {
+                    'message':f'quantity cannot be less than 0'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        product = Product.objects.filter(id = product_id).first()
+        if not product:
+            return Response({'meesage':'Product Not Found'},status=status.HTTP_404_NOT_FOUND)
 
-            cart, created = Cart.objects.get_or_create(user=user)
-            print(f"Cart found/created: {cart}")
-            cart_item = CartItem.objects.filter(cart=cart, product_id=product_id).first()
-            print(f"Whats in cart item{cart_item}")
+        cart, _ = Cart.objects.get_or_create(user=user)
+        print(f"Cart found/created: {cart}")
+        cart_item = CartItem.objects.filter(cart=cart, product_id=product_id).first()
+        print(f"Whats in cart item{cart_item}")
+        if request.method == 'POST':
             if cart_item:
-                print(f"Inside If cart_item!!")
-
-                new_quantity = cart_item.quantity + int(quantity)
-                if new_quantity <= 0:
-                    cart_item.delete()
-                    cart_items_data = []
-                else:
-                    cart_item.quantity = new_quantity
-                    cart_item.save()
-                    cart_items_data = CartItemSerializer(cart_item).data
-                
+                cart_item.quantity += quantity
+                cart_item.save()
             else:
-                cart_item=CartItem.objects.create(cart=cart,product_id=product_id,quantity=quantity)
-                cart_items_data = CartItemSerializer(cart_item).data
-            
-            return Response({'message':'product added to Cart','cart_items':cart_items_data},status=status.HTTP_200_OK)
-        except Exception as e:
+                cart_item = CartItem.objects.create(cart=cart, product=product, quantity=quantity)
+                serializer = CartItemSerializer(cart_item)
+            return Response(
+                    {
+                        'message':'Product Added to Cart',
+                        'cart_item':serializer.data
+                    },
+                    status=status.HTTP_200_OK
+                )
+                
+        elif request.method == 'PUT':
+                print("Inside Put condition block")
+                if not cart_item:
+                    return Response(
+                        {'message':'Product Not found in cart'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                cart_item.quantity += 1
+                cart_item.save()
+                serializer = CartItemSerializer(cart_item)
+                
+                return Response({'message':'product quantity increased by 1','cart_items':serializer.data},status=status.HTTP_200_OK)
+    except Exception as e:
+            print(f"Error from addcart: {e}")
             return Response({'error':str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_cart_items(request):
+    user = request.user
+    if user.role != 'customer':
+        return Response({'message: Only Customer can view cart'}, status=status.HTTP_403_FORBIDDEN)
+    try:
+        cart = Cart.objects.get(user=user)
+        cart_items = CartItem.objects.filter(cart=cart)
+
+    except Cart.DoesNotExist as e:
+        return Response({'error':'Cart is Empty'}, status=status.HTTP_400_BAD_REQUEST)
+    serializer = CartItemSerializer(cart_items, many=True)
+    total = sum([item.product.price * item.quantity for item in cart_items]) 
+    return Response({'cart items':serializer.data, 'total':total})
+
+
+@api_view(['PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def delete_cart_item(request, pk):
+    user = request.user
+    print(user)
+    if user.role != 'customer':
+        return Response({'message: Only Customer can delete the items'}, status=status.HTTP_403_FORBIDDEN)
+    try:
+        cart = Cart.objects.get(user=user)
+        cart_item = CartItem.objects.get(cart=cart,pk=pk)
+        product_name = cart_item.product.name
+        print(cart_item)
+        if request.method == 'PUT':
+            if cart_item.quantity > 1:
+                print(cart_item.quantity)
+                cart_item.quantity -=1 
+                cart_item.save()
+                
+                return Response({'message':f'Item quantity of {product_name} reduced by 1'}, status=status.HTTP_200_OK)
+            else:
+                cart_item.delete()
+                return Response({
+                    'message':f'{product_name} deleted coz it as 1'
+                }, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+                print("Got a delete request")
+                cart_item.delete()
+        return Response({'message':f'{product_name} deleted successfully from cart'}, status=status.HTTP_100_CONTINUE)
+    except Cart.DoesNotExist:
+        return Response({'messgae':'cart not found'})
+    except CartItem.DoesNotExist:
+        return Response({'messgae':'cart item not found'})
+    except Exception as e:
+        print(f"Error in deleting cart: {e}")
+        return Response({'error':f'{str(e)}'})

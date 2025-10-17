@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 # Create your models here.
-
+import qrcode
+from io import BytesIO
+from django.core.files import File
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -18,9 +20,23 @@ class User(AbstractUser):
     
 
 class Product(models.Model):
+
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     qr_code_value = models.CharField(max_length=100, unique=True)
+    qr_code_img = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if not self.qr_code_img:
+            qr = qrcode.make(self.qr_code_value)
+            buffer = BytesIO()
+            qr.save(buffer, format='PNG')                
+            filename = f'qr_code_{self.name}.png'
+
+            self.qr_code_img.save(filename, File(buffer), save=False)
+            super().save(update_fields=['qr_code_img'])
 
     def __str__(self):
         return self.name
