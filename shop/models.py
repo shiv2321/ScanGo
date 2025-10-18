@@ -12,7 +12,7 @@ class User(AbstractUser):
         ('CUSTOMER', 'Customer')
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CUSTOMER')
-    phone = models.CharField(max_length=15, blank=True, null=True)
+    email = models.CharField(max_length=15, blank=True, null=True)
 
 
     def __str__(self):

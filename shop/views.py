@@ -4,9 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Product, Cart, CartItem
-from .serializers import ProductSerializer, CartItemSerializer, CartSerializer
-
+from .models import Product, Cart, CartItem, User, Order
+from .serializers import ProductSerializer, CartItemSerializer, CartSerializer, UserSerializer, OrderSerializer
+from rest_framework.pagination import PageNumberPagination
 # Create your views here.
 
 @api_view(['GET', 'POST'])
@@ -177,3 +177,97 @@ def delete_cart_item(request, pk):
     except Exception as e:
         print(f"Error in deleting cart: {e}")
         return Response({'error':f'{str(e)}'})
+    
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_all_users(request):
+    user = request.user
+    if user.role != 'Admin':
+        return Response({'message':'Only Admin can access users this endpoint'}, status=status.HTTP_403_FORBIDDEN)
+    users = User.objects.all().order_by('-id')
+    paginator = PageNumberPagination()
+    paginator.page_size = 5
+    result_page = paginator.paginate_queryset(users, request)
+    serializer = UserSerializer(result_page, many=True)
+    
+    return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_all_orders(request):
+    user = request.user
+    if user.role != 'Admin':
+        return Response({'message':'Only Admin can access users this endpoint'}, status=status.HTTP_403_FORBIDDEN)
+    orders = Order.objects.all().order_by('-created_at')
+    paginator = PageNumberPagination()
+    paginator.page_size = 5
+    result_page = paginator.paginate_queryset(orders,request)
+    serializer = OrderSerializer(result_page, many=True)
+
+    return paginator.get_paginated_response(serializer.data)
+
+from django.db import transaction
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def check_out(request):
+    user = request.user
+    if user.role.lower() != 'customer':
+        return Response({'message':'Only Customer can access users this endpoint'}, status=status.HTTP_403_FORBIDDEN)
+    try:
+        with transaction.atomic():
+            cart = Cart.objects.get(user=user)
+            cart_items = CartItem.objects.filter(cart=cart)
+            if not cart_items.exists():
+                return Response(
+                    {
+                        'message':'Cart is Empty'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            order_details = [
+                {
+                    "product":item.product,
+                    "quantity":item.quantity,
+                    "price":item.product.price,
+                    "total":item.product.price * item.quantity
+                } for item in cart_items 
+            ]
+            #serializer = CartItemSerializer(cart_items, many=True)
+            total_amount = sum([item.product.price * item.quantity for item in cart_items]) 
+            products = [item.product for item in cart_items]
+            order = Order.objects.create(user=user, total_amount=total_amount)
+            order.products.set(products)
+            order.save()
+            cart_items.delete()
+
+            return Response(
+                {
+                    'message':'Your Order Placed sucessfully', 
+                    'order_id': order.id,
+                    'total_amount': total_amount,
+                    'items': order_details
+                }, 
+                status=status.HTTP_201_CREATED)
+    except Cart.DoesNotExist:
+        return Response(
+            {
+                'error':'Cart not Found'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        return Response(
+            {
+                'error':f'There is an problem placing the order {str(e)}'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+        
