@@ -65,39 +65,40 @@ def product_details(request, pk):
 @permission_classes([IsAuthenticated])
 def add_to_cart(request):
     user = request.user
-    print("Request hit to cart")
-    print(f"user {user}")
-    print(f"Request Type: {request.method}")
     if user.role != 'customer':
         return Response({'error':'Permission Denied Only cutomer can access Cart'},status=status.HTTP_403_FORBIDDEN)
     try:
         product_id = request.data.get('product_id')
-        print(f"product ID ;- {product_id}")
-        if not product_id:
-            return Response({'err':'producyt_id is required'},status=status.HTTP_400_BAD_REQUEST)
+        qr_code = request.data.get('qr_code')
         quantity = int(request.data.get('quantity', 1))
-        if quantity < 0:
+        if quantity < 1:
             return Response(
                 {
-                    'message':f'quantity cannot be less than 0'
+                    'message':f'quantity cannot be less than 1'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        product = Product.objects.filter(id = product_id).first()
+        if product_id:
+            product = Product.objects.filter(id = product_id).first()
+        elif qr_code:
+            product = Product.objects.filter(qr_code=qr_code).first()
+        else:
+            return Response(
+                {
+                    'message':'product id or product qr is required'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
         if not product:
             return Response({'meesage':'Product Not Found'},status=status.HTTP_404_NOT_FOUND)
 
-        cart, _ = Cart.objects.get_or_create(user=user)
-        print(f"Cart found/created: {cart}")
-        cart_item = CartItem.objects.filter(cart=cart, product_id=product_id).first()
-        print(f"Whats in cart item{cart_item}")
+        cart, _ = Cart.objects.get_or_create(user=user)        
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
         if request.method == 'POST':
-            if cart_item:
-                cart_item.quantity += quantity
-                cart_item.save()
-            else:
-                cart_item = CartItem.objects.create(cart=cart, product=product, quantity=quantity)
-                serializer = CartItemSerializer(cart_item)
+            cart_item.quantity += quantity if not created else quantity
+            cart_item.save()
+            
+            serializer = CartItemSerializer(cart_item)
             return Response(
                     {
                         'message':'Product Added to Cart',
@@ -107,7 +108,6 @@ def add_to_cart(request):
                 )
                 
         elif request.method == 'PUT':
-                print("Inside Put condition block")
                 if not cart_item:
                     return Response(
                         {'message':'Product Not found in cart'},
