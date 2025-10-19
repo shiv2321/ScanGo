@@ -58,16 +58,27 @@ class CartItem(models.Model):
 
 
 class Order(models.Model):
+    STATUS_CHOICE = [
+        ('pending', 'pending'),
+        ('processing', 'processing'),
+        ('completed', 'completed'),
+        ('cancelled', 'cencelled'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    products = models.ManyToManyField(Product)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICE, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
     
 
-
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 
 #tokens
 from django.conf import settings

@@ -5,9 +5,11 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Product, Cart, CartItem, User, Order
-from .serializers import ProductSerializer, CartItemSerializer, CartSerializer, UserSerializer, OrderSerializer
-from rest_framework.pagination import PageNumberPagination
+from .serializers import ProductSerializer, CartItemSerializer, UserSerializer, OrderSerializer
+from .services.utils import is_admin, is_customer, paginate_queryset, get_products, create_product
 # Create your views here.
+
+
 
 @api_view(['GET', 'POST'])
 @authentication_classes([TokenAuthentication])
@@ -15,19 +17,17 @@ from rest_framework.pagination import PageNumberPagination
 def product_list(request):
     user = request.user
     if request.method == 'GET':
-        products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        data = get_products(Product, ProductSerializer)
+        return Response(data)
     
     elif request.method == 'POST':
-        if user.role != 'Admin':
+        if not is_admin(user):
             return Response({'error':'Permission Denied'}, status=status.HTTP_403_FORBIDDEN)
-        serializer = ProductSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+        created, data = create_product(request, ProductSerializer)
+        if created:
+            return Response(data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -45,7 +45,7 @@ def product_details(request, pk):
         return Response(serializer.data)
     
     elif request.method in ['PUT', 'DELETE']:
-        if user.role != 'Admin':
+        if not is_admin(user):
             return Response({'error':'Permission Denied'}, status=status.HTTP_403_FORBIDDEN)
         
 
@@ -65,7 +65,7 @@ def product_details(request, pk):
 @permission_classes([IsAuthenticated])
 def add_to_cart(request):
     user = request.user
-    if user.role != 'customer':
+    if not is_customer(user):
         return Response({'error':'Permission Denied Only cutomer can access Cart'},status=status.HTTP_403_FORBIDDEN)
     try:
         product_id = request.data.get('product_id')
@@ -81,7 +81,7 @@ def add_to_cart(request):
         if product_id:
             product = Product.objects.filter(id = product_id).first()
         elif qr_code:
-            product = Product.objects.filter(qr_code=qr_code).first()
+            product = Product.objects.filter(qr_code_value=qr_code).first()
         else:
             return Response(
                 {
@@ -90,12 +90,16 @@ def add_to_cart(request):
                 status=status.HTTP_404_NOT_FOUND
             )
         if not product:
-            return Response({'meesage':'Product Not Found'},status=status.HTTP_404_NOT_FOUND)
+            return Response({'message':'Product Not Found'},status=status.HTTP_404_NOT_FOUND)
 
         cart, _ = Cart.objects.get_or_create(user=user)        
         cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
         if request.method == 'POST':
-            cart_item.quantity += quantity if not created else quantity
+            if created:
+                cart_item.quantity = quantity
+            else:
+                cart_item.quantity += quantity
+            
             cart_item.save()
             
             serializer = CartItemSerializer(cart_item)
@@ -108,11 +112,6 @@ def add_to_cart(request):
                 )
                 
         elif request.method == 'PUT':
-                if not cart_item:
-                    return Response(
-                        {'message':'Product Not found in cart'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
                 cart_item.quantity += 1
                 cart_item.save()
                 serializer = CartItemSerializer(cart_item)
@@ -128,7 +127,7 @@ def add_to_cart(request):
 @authentication_classes([TokenAuthentication])
 def get_cart_items(request):
     user = request.user
-    if user.role != 'customer':
+    if not is_customer(user):
         return Response({'message: Only Customer can view cart'}, status=status.HTTP_403_FORBIDDEN)
     try:
         cart = Cart.objects.get(user=user)
@@ -147,7 +146,7 @@ def get_cart_items(request):
 def delete_cart_item(request, pk):
     user = request.user
     print(user)
-    if user.role != 'customer':
+    if not is_customer(user):
         return Response({'message: Only Customer can delete the items'}, status=status.HTTP_403_FORBIDDEN)
     try:
         cart = Cart.objects.get(user=user)
@@ -186,15 +185,11 @@ def delete_cart_item(request, pk):
 @authentication_classes([TokenAuthentication])
 def get_all_users(request):
     user = request.user
-    if user.role != 'Admin':
+    if not is_admin(user):
         return Response({'message':'Only Admin can access users this endpoint'}, status=status.HTTP_403_FORBIDDEN)
     users = User.objects.all().order_by('-id')
-    paginator = PageNumberPagination()
-    paginator.page_size = 5
-    result_page = paginator.paginate_queryset(users, request)
-    serializer = UserSerializer(result_page, many=True)
-    
-    return paginator.get_paginated_response(serializer.data)
+    return paginate_queryset(users, request, UserSerializer)
+
 
 
 @api_view(['GET'])
@@ -202,15 +197,11 @@ def get_all_users(request):
 @authentication_classes([TokenAuthentication])
 def get_all_orders(request):
     user = request.user
-    if user.role != 'Admin':
+    if not is_admin(user):
         return Response({'message':'Only Admin can access users this endpoint'}, status=status.HTTP_403_FORBIDDEN)
     orders = Order.objects.all().order_by('-created_at')
-    paginator = PageNumberPagination()
-    paginator.page_size = 5
-    result_page = paginator.paginate_queryset(orders,request)
-    serializer = OrderSerializer(result_page, many=True)
+    return paginate_queryset(orders, request, OrderSerializer)
 
-    return paginator.get_paginated_response(serializer.data)
 
 from django.db import transaction
 @api_view(['POST'])
@@ -218,7 +209,7 @@ from django.db import transaction
 @authentication_classes([TokenAuthentication])
 def check_out(request):
     user = request.user
-    if user.role.lower() != 'customer':
+    if not is_customer(user):
         return Response({'message':'Only Customer can access users this endpoint'}, status=status.HTTP_403_FORBIDDEN)
     try:
         with transaction.atomic():
@@ -231,27 +222,46 @@ def check_out(request):
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            order_details = [
+            """order_details = [
                 {
-                    "product":item.product,
-                    "quantity":item.quantity,
-                    "price":item.product.price,
+                    "product":{
+                        'name':item.product.name,
+                        "quantity":item.quantity,
+                        "price":item.product.price,
+                        
+                    },
                     "total":item.product.price * item.quantity
                 } for item in cart_items 
-            ]
+            ]"""
+            from .models import OrderItem
             #serializer = CartItemSerializer(cart_items, many=True)
             total_amount = sum([item.product.price * item.quantity for item in cart_items]) 
-            products = [item.product for item in cart_items]
-            order = Order.objects.create(user=user, total_amount=total_amount)
-            order.products.set(products)
-            order.save()
+            #products = [item.product for item in cart_items]
+            order = Order.objects.create(user=user, total_amount=total_amount,status='pending')
+            #order.products.set(products)
+            order_details = []
+            for item in cart_items:
+                order_item = OrderItem.objects.create(
+                    order = order,
+                    product = item.product,
+                    quantity = item.quantity,
+                    price = item.product.price
+                )
+                order_details.append(
+                    {
+                        "product":item.product.name,
+                        "quantity":item.quantity,
+                        "price":float(item.product.price),
+                        "totaL":float(item.product.price * item.quantity)
+                    }
+                )
             cart_items.delete()
 
             return Response(
                 {
                     'message':'Your Order Placed sucessfully', 
                     'order_id': order.id,
-                    'total_amount': total_amount,
+                    'total_amount': float(total_amount),
                     'items': order_details
                 }, 
                 status=status.HTTP_201_CREATED)
