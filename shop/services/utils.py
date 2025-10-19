@@ -27,5 +27,5 @@ def create_product(request, class_serializer):
         status = True
         return status, data
     status = False
-    return status, serializer.error
+    return status, serializer.errors
     
