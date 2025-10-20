@@ -9,7 +9,7 @@ function Home() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const token = "b82877c07f8d0130c64598262a97b791400c2b07"
+        const token = localStorage.getItem("token")
         axios
             .get("http://127.0.0.1:8000/api/products/", {
                 headers: {Authorization: `Token ${token}`}
@@ -41,6 +41,7 @@ function Home() {
                 {products.map((p) => (
                     <ProductCard
                         key={p.id}
+                        id={p.id}
                         name={p.name}
                         price={p.price}
                         image={p.image}
