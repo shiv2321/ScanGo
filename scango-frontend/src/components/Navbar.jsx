@@ -27,13 +27,19 @@ const Navbar = () => {
 
             {/* Menu */}
             <div className="space-x-4">
-                <Link to="/" className="hover:text-yellow-300">Home</Link>
+                <Link to="/dashboard" className="hover:text-yellow-300">Home</Link>
                 <Link
                     to="/cart"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl"
                 >
                     Cart ({cartCount})
                 </Link>
+                <button
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    onClick={() => navigate("/scan")}
+                >
+                    Scan QR Code
+                </button>
                 {token ? (
                     <button
                         onClick={handleLogout}

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
     const navigate = useNavigate()
+    const { handleLogin } = useAuth();
     const [form, setForm] = useState({ username: "", password: "" });
     const [error, setError] = useState("");
 
@@ -11,17 +12,17 @@ const Login = () => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        axios
-            .post("http://127.0.0.1:8000/api/login/", form)
-            .then((res) => {
-                localStorage.setItem("token", res.data.token);
-                navigate("/");
-            })
-            .catch((err) => {
-                setError(err.response?.data?.non_field_errors?.[0] || "Login Failed");
-            });
+        const result = await handleLogin(form.username, form.password);
+
+        if (result.success) {
+            navigate("/dashboard")
+
+        } else {
+            setError(result.message);
+        }
+
     };
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">

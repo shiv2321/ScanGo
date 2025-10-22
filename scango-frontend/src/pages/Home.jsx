@@ -3,17 +3,16 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import ProductCard from "../components/ProductCard";
 
+
 function Home() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem("token")
         axios
-            .get("http://127.0.0.1:8000/api/products/", {
-                headers: {Authorization: `Token ${token}`}
-            })
+            .get("http://127.0.0.1:8000/api/products/"
+            )
             .then((res) => {
                 setProducts(res.data);
                 setLoading(false);
@@ -37,6 +36,7 @@ function Home() {
             <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">
                 🛒 ScanGo Products
             </h1>
+            
             <div className="flex flex-wrap justify-center gap-6">
                 {products.map((p) => (
                     <ProductCard

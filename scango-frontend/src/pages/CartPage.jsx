@@ -4,23 +4,21 @@ import { Trash2 } from "lucide-react";
 
 
 function CartPage() {
-    const { cart, removeFromCart, clearCart, fetchCart, ItemDecrease, ItemIncrease } = useContext(CartContext);
+    const { cart, removeFromCart, clearCart, ItemDecrease, ItemIncrease } = useContext(CartContext);
     /* const [cartItems, setCartItems] = useState(cart);
     const token = localStorage.getItem("token"); */
 
     const handleRemove = (id) => {
         removeFromCart(id);
-        fetchCart();
     }
 
     const handleDecrease = (id) => {
         ItemDecrease(id);
-        fetchCart();
+
     }
 
     const handleIncrease = (id) => {
         ItemIncrease(id);
-        fetchCart();
     }
 
     const totalPrice = cart.reduce(
@@ -39,12 +37,12 @@ function CartPage() {
                 ) : (
                     <>
                         <div className="space-y-4">
-                            {cart.map((item) => (
+                            {cart.map((item, index) => (
                                 <div
-                                    key={item.id}
-                                    className="flex justify-between items-center border-b pb-3"
+                                    key={item.id || item.product_id || index}
+                                    className="flex justify-between items-center border-b pb-3 space-x-4"
                                 >
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 flex-1">
                                         <img
                                             src={item.image || "/placeholder.png"}
                                             alt={item.name}
@@ -58,28 +56,30 @@ function CartPage() {
                                             </p>
                                         </div>
                                     </div>
-
-                                    <button
-                                        onClick={() => handleRemove(item.id)}
-                                        className="text-red-500 hover:text-red-700"
-                                    >
-                                        <Trash2 size={22} />
-                                    </button>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-4">
                                         <button
-                                            onClick={() => handleDecrease(item.id)}
-                                            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                                            onClick={() => handleRemove(item.id)}
+                                            className="text-red-500 hover:text-red-700"
                                         >
-                                            -
-
+                                            <Trash2 size={22} />
                                         </button>
-                                        <button
-                                            onClick={() => handleIncrease(item.id)}
-                                            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                                        >
-                                            +
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => handleDecrease(item.id)}
+                                                className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                                            >
+                                                -
 
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleIncrease(item.product_id)}
+                                                className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                                            >
+                                                +
+                                            </button>
+
+                                        </div>
                                     </div>
                                 </div>
                             ))}

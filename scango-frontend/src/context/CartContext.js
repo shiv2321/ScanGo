@@ -19,6 +19,7 @@ export const CartProvider = ({ children }) => {
                     const items = res.data["cart items"] || [];
                     const flatItems = items.map((item) => ({
                         id: item.id,
+                        product_id : item.product?.id,
                         name: item.product?.name,
                         price: parseFloat(item.product?.price) || 0,
                         image: "/placeholder.png",
@@ -31,7 +32,18 @@ export const CartProvider = ({ children }) => {
             }
         } else {
             const storedCart = localStorage.getItem('cart');
-            if (storedCart) setCart(JSON.parse(storedCart));
+            if (storedCart) {
+                const parsed = JSON.parse(storedCart);
+                const flatItems = parsed.map((item) => ({
+                    id: item.id || Date.now(),
+                    product_id: item.product_id || item.id,
+                    name: item.name || "Product",
+                    price: item.price || 0,
+                    image: "/placholder.png",
+                    quantity: item.quantity || 1,
+                }));
+                setCart(flatItems);
+            }
         }
     }
 
@@ -40,29 +52,18 @@ export const CartProvider = ({ children }) => {
     const addToCart = async (product) => {
         if (isLoggedIn) {
             try {
+                const payload = product.id 
+                    ? {product_id : product.id, quantity: 1}
+                    : { qr_code : product.qr_code, quantity: 1}
+                console.log("from add to cart func payload: ",payload);
+
                 const res = await axios.post("http://127.0.0.1:8000/api/addtocart/",
-                    { product_id: product.id, quantity: 1 },
+                    payload,
                     { headers: { Authorization: `Token ${token}` } }
 
                 );
-                const newItem = res.data;
-                const flatItems = {
-                    id: newItem.id,
-                    name: newItem.product?.name,
-                    price: parseFloat(newItem.product?.price) || 0,
-                    image: "/placeholder.png",
-                    quantity: newItem.quantity || 1,
-                }
-                setCart((prev) => {
-                    const existing = prev.find((item) => item.id === flatItems.id)
-                    if (existing) {
-                        return prev.map((item) =>
-                            item.id === flatItems.id ? flatItems : item
-                        );
-                    } else {
-                        return [...prev, flatItems]
-                    }
-                });
+                await fetchCart();
+
             } catch (error) {
                 console.error("Error adding to backend cart ", error);
             }
@@ -70,15 +71,27 @@ export const CartProvider = ({ children }) => {
         } else {
             setCart((prev) => {
                 const existing = prev.find((item) => item.id === product.id);
+                let updated;
                 if (existing) {
-                    return prev.map((item) =>
+                    updated = prev.map((item) =>
                         item.id === product.id
                             ? { ...item, quantity: item.quantity + 1 }
                             : item
                     );
                 } else {
-                    return [...prev, { ...product, quantity: 1 }];
+
+                    updated = [
+                        ...prev, {
+                        id : Date.now(),
+                        product_id : product.id,
+                        name : product.name,
+                        price : product.price,
+                        quantity: 1,
+                     },
+                    ];
                 }
+                localStorage.setItem("cart", JSON.stringify(updated));
+                return updated;
             });
         }
 
@@ -87,8 +100,8 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = async (id) => {
         if (isLoggedIn) {
             try {
-                await axios.delete(`http://127.0.0.1:8000/api/deletecart/${id}/`, {
-                    headers: {Authorization: `Token ${token}` },
+                await axios.delete(`http://127.0.0.1:8000/api/deletecart/${id}`,
+                   { headers: {Authorization: `Token ${token}` },
                 });
                 await fetchCart();
 
@@ -124,10 +137,12 @@ export const CartProvider = ({ children }) => {
     }
 
     const ItemIncrease = async (id) => {
+        console.log("Request hit on IntemIncease")
         if (isLoggedIn){
             try {
-                await axios.put(`http://127.0.0.1:8000:/api/addtocart/${id}/`,{}, {
-                    headers:{Authorization: `Token ${token}` },
+                await axios.put("http://127.0.0.1:8000/api/addtocart/",
+                    { product_id: id}, 
+                    {headers:{Authorization: `Token ${token}` },
                 });
                 await fetchCart();
                 
@@ -164,7 +179,7 @@ export const CartProvider = ({ children }) => {
 
     useEffect(() => {
         fetchCart();
-    });
+    }, []);
 
     useEffect(() => {
         if (!isLoggedIn) {

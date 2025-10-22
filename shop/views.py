@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,16 +11,19 @@ from .services.utils import is_admin, is_customer, paginate_queryset, get_produc
 
 
 
-@api_view(['GET', 'POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def product_list(request):
-    user = request.user
     if request.method == 'GET':
         data = get_products(Product, ProductSerializer)
         return Response(data)
-    
-    elif request.method == 'POST':
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def prduct_create(request):
+    user = request.user
+    if request.method == 'POST':
         if not is_admin(user):
             return Response({'error':'Permission Denied'}, status=status.HTTP_403_FORBIDDEN)
         created, data = create_product(request, ProductSerializer)
@@ -65,12 +68,14 @@ def product_details(request, pk):
 @permission_classes([IsAuthenticated])
 def add_to_cart(request):
     user = request.user
+    print("Add to cart function called!!!!!!!!")
     if not is_customer(user):
         return Response({'error':'Permission Denied Only cutomer can access Cart'},status=status.HTTP_403_FORBIDDEN)
     try:
         product_id = request.data.get('product_id')
         qr_code = request.data.get('qr_code')
         quantity = int(request.data.get('quantity', 1))
+        print(request.data)
         if quantity < 1:
             return Response(
                 {
@@ -149,8 +154,10 @@ def delete_cart_item(request, pk):
     if not is_customer(user):
         return Response({'message: Only Customer can delete the items'}, status=status.HTTP_403_FORBIDDEN)
     try:
+
         cart = Cart.objects.get(user=user)
         cart_item = CartItem.objects.get(cart=cart,pk=pk)
+        print(f"{cart_item} from delete cart")
         product_name = cart_item.product.name
         print(cart_item)
         if request.method == 'PUT':

@@ -25,6 +25,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     qr_code_value = models.CharField(max_length=100, unique=True)
     qr_code_img = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
+    product_image = models.ImageField(upload_to='products/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
