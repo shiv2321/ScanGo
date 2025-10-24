@@ -5,6 +5,8 @@ from django.utils import timezone
 import qrcode
 from io import BytesIO
 from django.core.files import File
+import random
+from datetime import timedelta
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -12,14 +14,28 @@ class User(AbstractUser):
         ('CUSTOMER', 'Customer')
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CUSTOMER')
-    email = models.CharField(max_length=15, blank=True, null=True)
+    email = models.CharField(blank=True, null=True)
 
 
     def __str__(self):
         return f"{self.username} {self.role}"
     
+class AdminOtp(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    created_at = models .DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=10)
+    
+    @staticmethod
+    def generate_otp():
+        return str(random.randint(100000, 999999))
+
 
 class Product(models.Model):
+
 
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)

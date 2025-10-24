@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import axios from "axios";
+import api from "../api";
 
 export const AuthContext = createContext();
 
@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     const handleLogin = async (username, password) => {
         try {
-            const res = await axios.post("http://127.0.0.1:8000/api/login/",{
+            const res = await api.post("http://127.0.0.1:8000/api/login/",{
                 username,
                 password,
             });

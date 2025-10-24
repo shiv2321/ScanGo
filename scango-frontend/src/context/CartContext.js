@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../api";
 import React, { createContext, useState, useEffect } from "react";
 
 export const CartContext = createContext();
@@ -11,7 +11,7 @@ export const CartProvider = ({ children }) => {
     const fetchCart = async () => {
         if (isLoggedIn) {
             try {
-                const res = await axios
+                const res = await api
                     .get("http://127.0.0.1:8000/api/getcart/", {
                         headers: { Authorization: `Token ${token}` },
                     })
@@ -57,7 +57,7 @@ export const CartProvider = ({ children }) => {
                     : { qr_code : product.qr_code, quantity: 1}
                 console.log("from add to cart func payload: ",payload);
 
-                const res = await axios.post("http://127.0.0.1:8000/api/addtocart/",
+                const res = await api.post("http://127.0.0.1:8000/api/addtocart/",
                     payload,
                     { headers: { Authorization: `Token ${token}` } }
 
@@ -100,7 +100,7 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = async (id) => {
         if (isLoggedIn) {
             try {
-                await axios.delete(`http://127.0.0.1:8000/api/deletecart/${id}`,
+                await api.delete(`http://127.0.0.1:8000/api/deletecart/${id}`,
                    { headers: {Authorization: `Token ${token}` },
                 });
                 await fetchCart();
@@ -117,7 +117,7 @@ export const CartProvider = ({ children }) => {
 
     const ItemDecrease = async (cartItemId) => {
         if (isLoggedIn) {
-            await axios.put(
+            await api.put(
                 `http://127.0.0.1:8000/api/deletecart/${cartItemId}`,
                 {},
                 { headers: {Authorization: `Token ${token}`} }
@@ -140,7 +140,7 @@ export const CartProvider = ({ children }) => {
         console.log("Request hit on IntemIncease")
         if (isLoggedIn){
             try {
-                await axios.put("http://127.0.0.1:8000/api/addtocart/",
+                await api.put("http://127.0.0.1:8000/api/addtocart/",
                     { product_id: id}, 
                     {headers:{Authorization: `Token ${token}` },
                 });
@@ -164,7 +164,7 @@ export const CartProvider = ({ children }) => {
     const clearCart = async () => {
         if (isLoggedIn) {
             try {
-                await axios.delete("http://127.0.0.1:8000/api/deletecart/", {
+                await api.delete("http://127.0.0.1:8000/api/deletecart/", {
                     headers : {Authorization: `Token ${token}` },
                 });
                 await fetchCart();

@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api";
 import ProductCard from "../components/ProductCard";
 
 
@@ -10,7 +10,7 @@ function Home() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        axios
+        api
             .get("http://127.0.0.1:8000/api/products/"
             )
             .then((res) => {
@@ -22,6 +22,7 @@ function Home() {
                 setError("Failed to load products")
                 setLoading(false)
             })
+
     }, [])
 
     if (loading) {
@@ -44,7 +45,8 @@ function Home() {
                         id={p.id}
                         name={p.name}
                         price={p.price}
-                        image={p.image}
+                        image={p.product_image}
+                        onDelete={(id) => setProducts(products.filter((prod) => prod.id !== id))}
                     />
                 ))}
             </div>

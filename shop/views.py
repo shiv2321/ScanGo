@@ -7,6 +7,7 @@ from rest_framework import status
 from .models import Product, Cart, CartItem, User, Order
 from .serializers import ProductSerializer, CartItemSerializer, UserSerializer, OrderSerializer
 from .services.utils import is_admin, is_customer, paginate_queryset, get_products, create_product
+from .services.mail_util import otp_verify_service, mail_service
 # Create your views here.
 
 
@@ -287,4 +288,24 @@ def check_out(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
-        
+@api_view(['POST'])
+def send_email_otp(request):
+    email = request.data.get('email')
+    flag, message = mail_service(email)
+    if not flag:
+        return Response({"message":message}, status=status.HTTP_400_BAD_REQUEST)
+    if flag:
+        return Response({"message":message},status=status.HTTP_200_OK)
+    
+
+@api_view(['POST'])
+def verify_otp(request):
+    email = request.data.get("email")
+    otp = request.data.get("otp")
+
+    flag, message = otp_verify_service(email, otp)
+    if not flag:
+        return Response({'verified':flag, "message":message}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if flag:
+        return Response({'verified':flag, 'message':message})

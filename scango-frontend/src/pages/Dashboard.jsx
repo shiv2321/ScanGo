@@ -24,19 +24,24 @@ const Dashboard = () => {
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                     {/* Visible to everyone */}
                     <button
-                        onClick={() => navigate("/")}
+                        onClick={() => navigate("/Products")}
                         className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition"
                     >
                         View Products
                     </button>
 
-                    {/* Visible only to admin */}
-                    {user?.role === "admin" && (
-                        <button
-                            onClick={() => navigate("/add-product")}
-                            className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition"
+                    <button
+                        onClick={handleLogout}
+                        className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition"
+                    >
+                        Logout
+                    </button>
+                    {user?.role.toLowerCase() !== "admin" && (
+                        <button                   
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={() => navigate("/scan")}
                         >
-                            Add Product
+                            Scan QR Code
                         </button>
                     )}
                 </div>

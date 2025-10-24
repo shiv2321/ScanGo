@@ -6,6 +6,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from .models import AdminOtp
 
 User = get_user_model()
 
@@ -15,9 +16,11 @@ def signup(request):
 
     data = request.data
     username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
+    confirm_password = data.get('ConfirmPassword')
     role = data.get('role', 'customer')
-    phone = data.get('phone', '')
+
 
     if not username or not password:
         return Response({'error':'Username and password required!'}, status=status.HTTP_400_BAD_REQUEST)
@@ -25,14 +28,23 @@ def signup(request):
     if User.objects.filter(username=username).exists():
         return Response({'error':'Username already exists!'}, status=status.HTTP_400_BAD_REQUEST)
     
-    user = User.objects.create_user(username=username,password=password,role=role,phone=phone)
+    if password != confirm_password:
+        return Response({'details':'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if role.lower() == "admin":
+        try:
+            AdminOtp.objects.filter(email=email, is_verified=True).latest('created_at')
+        except AdminOtp.DoesNotExist:
+            return Response({'message':'Admin OTP verification required'},status=status.HTTP_400_BAD_REQUEST)
+        
+    user = User.objects.create_user(username=username,password=password,role=role,email=email)
     token , created = Token.objects.get_or_create(user=user)
 
     return Response({'message':'user created successfully','user': {
         'id':user.id,
         'username':user.username,
         'role':user.role,
-        'phone':user.phone
+        'email':user.email
         },
         'token':token.key,
     }, status=status.HTTP_201_CREATED)

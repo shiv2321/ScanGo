@@ -12,11 +12,13 @@ function QRScanner() {
     useEffect(() => {
         // Cleanup on unmount
         return () => {
-            if (scannerRef.current && scannerStarted) {
-                scannerRef.current.stop().catch(() => {});
+            const scanner = scannerRef.current;
+            if (scanner && scanner.isScanning) {
+                scanner.stop().catch(() => {});
+                scanner.clear().catch(() => {});
             }
         };
-    }, [scannerStarted]);
+    }, []);
 
     const startScanner = () => {
         if (scannerStarted) return; // prevent multiple starts
@@ -50,21 +52,52 @@ function QRScanner() {
             setError("Unable to start scanner");
         });
     };
-
+    const stopScanner = async () => {
+        const scanner = scannerRef.current;
+        if (!scanner) {
+            console.warn("No Scanner instance found");
+            return;
+        }
+        try{
+            if(scanner.isScanning) {
+                console.log("Stopping Scanner..");
+                await scanner.stop();
+                await scanner.clear();
+                console.log("Scanner stopped");
+            }else {
+                console.log("Scanner is not running.");
+            }
+        }catch (err) {
+            console.error("Error while stopping scanner:", err);
+        }finally {
+            setScannerStarted(false);
+            setScannedCode("");
+        }
+    };
     return (
-        <div className="p-4">
+        <div className="bg-white p-6 rounded-xl shadow-md w-full flex flex-col items-center">
             <h2 className="text-xl font-semibold mb-4">Scan QR Code</h2>
             {error && <p className="text-red-500">{error}</p>}
 
-            <div id="qr-reader" style={{ width: "40vw", maxWidth: "40vw", height:"400px", margin:"auto" }}></div>
-            {!scannerStarted && (
+            <div id="qr-reader" 
+            className="w-full h-96 mb-4" 
+            style={{ maxWidth: "400px" }}></div>
+            {!scannerStarted ? (
                 <button
                     onClick={startScanner}
-                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
                 >
                     Start Scanner
                 </button>
-            )}
+            ) : (
+                    <button
+                        onClick={stopScanner}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                    >
+                    Stop Scanner
+                    </button>
+                )
+        }
 
             {scannedCode && <p className="mt-2">Scanned Code: {scannedCode}</p>}
         </div>
