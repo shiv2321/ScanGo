@@ -45,6 +45,7 @@ const Navbar = () => {
                         onClick={() => navigate("/add-product")}
                         className="bg-white-600 text-purple w-10 h-10 flex items-center justify-center rounded-full hover:bg-yellow-700 transition duration-200 ease-in-out"
                         aria-label="Add Product"
+                        title="Add Product"
                     >
                         <FaPlus size={20}/>
                     </button>

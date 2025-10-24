@@ -8,6 +8,7 @@ import ScanPage from "./pages/ScanPage";
 import { AuthProvider } from "./context/AuthContext";
 import Dashboard from "./pages/Dashboard"
 import AddProduct from "./pages/AddProduct";
+import EditProduct from "./pages/EditProduct";
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/scan" element={<ScanPage />} />
+          <Route path="/edit-product/:id" element={<EditProduct />} />
         </Routes>
       </Router>
     </AuthProvider>

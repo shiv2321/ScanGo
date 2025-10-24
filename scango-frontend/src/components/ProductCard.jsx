@@ -1,14 +1,16 @@
 import React, { useContext, useState } from "react";
 import { CartContext } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaEdit } from "react-icons/fa";
 import api from "../api";
+import { useNavigate } from "react-router-dom";
 
 function ProductCard({ id, name, price, image, onDelete }) {
   const { addToCart } = useContext(CartContext);
   const [ added, setAdded ] = useState(false);
   const {user, token} = useAuth();
   const [deleting, setDeleting] = useState(false);
+  const navigate =useNavigate();
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
@@ -65,6 +67,17 @@ function ProductCard({ id, name, price, image, onDelete }) {
           {added ? "Added!" : "Add to Cart"}
         </button>
       )}
+      {user?.role?.toLowerCase() === "admin" && (
+        <button
+          onClick={() => navigate(`/edit-product/${id}`)}
+          className="absolute top-2 left-2 text-red-500 hover:text-red-700"
+          title="Edit Details"
+        >
+          <FaEdit />
+        </button>
+      )}
+
+      
     </div>
   );
 }

@@ -54,11 +54,12 @@ def product_details(request, pk):
         
 
         if request.method == 'PUT':
-            serializer = ProductSerializer(product, data = request.data)
+            serializer = ProductSerializer(product, data = request.data, partial = True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         elif request.method == 'DELETE':
             product.delete()

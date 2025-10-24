@@ -13,7 +13,7 @@ def mail_service(email):
         subject="Your Admin Otp",
         message=f"Your OTP is {otp}. It expires in 10 minutes.",
         from_email="no-reply@scango.com",
-        recipient_list=["hahahe840@gmail.com"],
+        recipient_list=[email],
     )
 
     return True, {"message":"OTP sent successfully"}
