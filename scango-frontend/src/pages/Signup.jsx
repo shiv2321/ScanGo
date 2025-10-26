@@ -22,7 +22,7 @@ const Signup = () => {
 
     const handleSentOtp = async () => {
         try {
-            await api.post("http://127.0.0.1:8000/api/send-admin-otp/",{
+            await api.post("/api/send-admin-otp/",{
                 email: form.email,
             });
             setOtpSent(true);
@@ -34,7 +34,7 @@ const Signup = () => {
 
     const handleOtpVerify = async () => {
         try {
-            const res = await api.post("http://127.0.0.1:8000/api/verify-admin-otp/", {
+            const res = await api.post("/api/verify-admin-otp/", {
                 email: form.email,
                 otp: form.otp,
             });
@@ -62,7 +62,7 @@ const Signup = () => {
         }
         try{
             api
-                .post("http://127.0.0.1:8000/api/signup/", form)
+                .post("/api/signup/", form)
                 .then((res) => {
                     console.log(res.data);
                     navigate("/login");

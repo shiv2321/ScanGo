@@ -17,7 +17,7 @@ function ProductCard({ id, name, price, image, onDelete }) {
 
     try {
       setDeleting(true);
-      await api.delete(`http://127.0.0.1:8000/api/products_details/${id}`, {
+      await api.delete(`/api/products_details/${id}`, {
         headers: {Authorization: `Token ${token}`}
       });
 
@@ -29,7 +29,13 @@ function ProductCard({ id, name, price, image, onDelete }) {
       setDeleting(false);
     }
   };
-
+  const BASE_URL = process.env.VITE_API_URL || "http://127.0.0.1:8000";
+  const imageUrl = image
+    ? image.startsWith("http")
+      ? image
+      : `${BASE_URL}${image}`
+    : "/placeholder.png";
+  
   return (
     <div className="relative border rounded-2xl shadow p-4 w-64 bg-white hover:shadow-lg transition">
       {user?.role?.toLowerCase() === "admin" && (
@@ -43,9 +49,7 @@ function ProductCard({ id, name, price, image, onDelete }) {
         </button>
       )}
       <img
-        src={image
-          ? `http://127.0.0.1:8000${image}`
-          : "/placeholder.png"}
+        src={imageUrl}
         alt={name || "Product"}
         className="h-48 w-full object-contain rounded-xl bg-gray-50 p-2"
         onError={(e) => (e.target.src = "/placeholder.png")}

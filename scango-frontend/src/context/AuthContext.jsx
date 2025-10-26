@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     const handleLogin = async (username, password) => {
         try {
-            const res = await api.post("http://127.0.0.1:8000/api/login/",{
+            const res = await api.post("/api/login/",{
                 username,
                 password,
             });

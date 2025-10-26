@@ -11,7 +11,7 @@ function Home() {
 
     useEffect(() => {
         api
-            .get("http://127.0.0.1:8000/api/products/"
+            .get("/api/products/"
             )
             .then((res) => {
                 setProducts(res.data);

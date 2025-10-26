@@ -21,7 +21,7 @@ function EditProduct() {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const res = await api.get(`http://127.0.0.1:8000/api/products_details/${id}/`, {
+                const res = await api.get(`/api/products_details/${id}/`, {
                     headers: { Authorization: `Token ${token} ` },
                 });
                 setProduct(res.data);
@@ -53,8 +53,8 @@ function EditProduct() {
 
             if (imageFile) formData.append("product_image", imageFile);
 
-            const res = await api.put(
-                `http://127.0.0.1:8000/api/products_details/${id}/`,
+            await api.put(
+                `/api/products_details/${id}/`,
                 formData,
                 {
                     headers: { Authorization: `Token ${token}` },
@@ -111,7 +111,7 @@ function EditProduct() {
                 {product.qr_code_img && (
                     <div className="flex flex-col items-center">
                         <img
-                            src={`http://127.0.0.1:8000${product.qr_code_img}`}
+                            src={`${product.qr_code_img}`}
                             alt="QR Code"
                             className="w-32 h-32 object-contain border rounded mb-2"
                         />
@@ -121,7 +121,7 @@ function EditProduct() {
                 {product.product_image && (
                     <div className="flex flex-col items-center">
                         <img
-                            src={`http://127.0.0.1:8000${product.product_image}`}
+                            src={`${product.product_image}`}
                             alt="Product"
                             className="w-32 h-32 object-contain border rounded mb-2"
                         />

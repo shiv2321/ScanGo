@@ -7,6 +7,7 @@ blinker==1.9.0
 certifi==2025.8.3
 click==8.2.1
 Django==5.2.6
+django-cors-headers==4.9.0
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 dnspython==2.7.0
@@ -28,6 +29,7 @@ markdown-it-py==4.0.0
 MarkupSafe==3.0.2
 mdurl==0.1.2
 orjson==3.11.2
+pillow==12.0.0
 psycopg2-binary==2.9.10
 pydantic==2.11.7
 pydantic-extra-types==2.10.5
@@ -35,9 +37,11 @@ pydantic-settings==2.10.1
 pydantic_core==2.33.2
 Pygments==2.19.2
 PyJWT==2.10.1
+python-decouple==3.8
 python-dotenv==1.1.1
 python-multipart==0.0.20
 PyYAML==6.0.2
+qrcode==8.2
 rich==14.1.0
 rich-toolkit==0.15.0
 rignore==0.6.4

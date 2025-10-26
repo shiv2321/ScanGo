@@ -1,5 +1,5 @@
 import api from "../api";
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
 
 export const CartContext = createContext();
 
@@ -8,11 +8,11 @@ export const CartProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     const isLoggedIn = !!token;
 
-    const fetchCart = async () => {
+    const fetchCart = useCallback(async () => {
         if (isLoggedIn) {
             try {
                 const res = await api
-                    .get("http://127.0.0.1:8000/api/getcart/", {
+                    .get("/api/getcart/", {
                         headers: { Authorization: `Token ${token}` },
                     })
                     
@@ -45,7 +45,7 @@ export const CartProvider = ({ children }) => {
                 setCart(flatItems);
             }
         }
-    }
+    }, [isLoggedIn, token]);
 
 
 
@@ -57,7 +57,7 @@ export const CartProvider = ({ children }) => {
                     : { qr_code : product.qr_code, quantity: 1}
                 console.log("from add to cart func payload: ",payload);
 
-                const res = await api.post("http://127.0.0.1:8000/api/addtocart/",
+                await api.post("/api/addtocart/",
                     payload,
                     { headers: { Authorization: `Token ${token}` } }
 
@@ -100,7 +100,7 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = async (id) => {
         if (isLoggedIn) {
             try {
-                await api.delete(`http://127.0.0.1:8000/api/deletecart/${id}`,
+                await api.delete(`/api/deletecart/${id}`,
                    { headers: {Authorization: `Token ${token}` },
                 });
                 await fetchCart();
@@ -118,7 +118,7 @@ export const CartProvider = ({ children }) => {
     const ItemDecrease = async (cartItemId) => {
         if (isLoggedIn) {
             await api.put(
-                `http://127.0.0.1:8000/api/deletecart/${cartItemId}`,
+                `/api/deletecart/${cartItemId}`,
                 {},
                 { headers: {Authorization: `Token ${token}`} }
             );
@@ -140,7 +140,7 @@ export const CartProvider = ({ children }) => {
         console.log("Request hit on IntemIncease")
         if (isLoggedIn){
             try {
-                await api.put("http://127.0.0.1:8000/api/addtocart/",
+                await api.put("/api/addtocart/",
                     { product_id: id}, 
                     {headers:{Authorization: `Token ${token}` },
                 });
@@ -164,7 +164,7 @@ export const CartProvider = ({ children }) => {
     const clearCart = async () => {
         if (isLoggedIn) {
             try {
-                await api.delete("http://127.0.0.1:8000/api/deletecart/", {
+                await api.delete("/api/deletecart/", {
                     headers : {Authorization: `Token ${token}` },
                 });
                 await fetchCart();
@@ -179,7 +179,7 @@ export const CartProvider = ({ children }) => {
 
     useEffect(() => {
         fetchCart();
-    }, []);
+    }, [fetchCart]);
 
     useEffect(() => {
         if (!isLoggedIn) {

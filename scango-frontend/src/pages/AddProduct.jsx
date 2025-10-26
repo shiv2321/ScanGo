@@ -49,8 +49,8 @@ const AddProduct = () => {
         if (form.image) formData.append("product_image", form.image);
 
         try {
-            const res = await api.post(
-                "http://127.0.0.1:8000/api/new_product/",
+            await api.post(
+                "/api/new_product/",
                 formData,
                 { headers: { Authorization: `Token ${token}` } }
             );
