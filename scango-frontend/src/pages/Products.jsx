@@ -11,7 +11,7 @@ function Home() {
 
     useEffect(() => {
         api
-            .get("/api/products/"
+            .get("/products/"
             )
             .then((res) => {
                 setProducts(res.data);

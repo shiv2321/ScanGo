@@ -17,7 +17,7 @@ function ProductCard({ id, name, price, image, onDelete }) {
 
     try {
       setDeleting(true);
-      await api.delete(`/api/products_details/${id}`, {
+      await api.delete(`/products_details/${id}`, {
         headers: {Authorization: `Token ${token}`}
       });
 
@@ -29,11 +29,12 @@ function ProductCard({ id, name, price, image, onDelete }) {
       setDeleting(false);
     }
   };
-  const BASE_URL = process.env.VITE_API_URL || "http://127.0.0.1:8000";
   const imageUrl = image
     ? image.startsWith("http")
       ? image
-      : `${BASE_URL}${image}`
+      : image.startsWith("/")
+      ? image
+      : "/placeholder.png"
     : "/placeholder.png";
   
   return (
@@ -52,7 +53,11 @@ function ProductCard({ id, name, price, image, onDelete }) {
         src={imageUrl}
         alt={name || "Product"}
         className="h-48 w-full object-contain rounded-xl bg-gray-50 p-2"
-        onError={(e) => (e.target.src = "/placeholder.png")}
+        onError={(e) => {
+		console.error("Failed To Load Image: ",imageUrl);
+		e.target.src = "/placeholder.png";
+	    }
+	}
       />
       <h3 className="text-lg font-semibold mt-2">{name}</h3>
       <p className="text-gray-600">₹{price}</p>

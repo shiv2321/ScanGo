@@ -44,9 +44,10 @@ function CartPage() {
                                 >
                                     <div className="flex items-center gap-4 flex-1">
                                         <img
-                                            src={item.product_imgage || "/placeholder.png"}
+                                            src={item.image || "/placeholder.png"}
                                             alt={item.name}
                                             className="w-20 h-20 object-cover rounded-lg"
+				    	    onError={(e) => { e.target.src = "/placeholder.png" }}
                                         />
                                         <div>
                                             <h2 className="text-lg font-semibold">{item.name}</h2>

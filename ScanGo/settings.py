@@ -27,7 +27,15 @@ SECRET_KEY = 'django-insecure-ekgt0$-5t7=-v5(-8kye+h$g3az9s^&dd4&gch%roda@a#_6=3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+allowed_hosts_list = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+if 'scango_web' not in allowed_hosts_list:
+    allowed_hosts_list.append('scango_web')
+
+allowed_hosts_list.append('127.0.0.1')
+allowed_hosts_list.append('localhost')
+
+
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_list if host.strip()]
 
 
 
@@ -53,8 +61,8 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -147,12 +155,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-
-CORS_ALLOW_HEADERS = [
-    "content-type",
-    "authorization",
-    "x-csrftoken",
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5173",        # for local dev
+    "http://localhost:5173",
+    "http://152.67.4.223",          # your VPS IP
+    "https://scango-backend.onrender.com", # replace if deployed frontend
 ]
+
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = ["*"]
+CORS_ALLOW_METHODS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",

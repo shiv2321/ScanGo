@@ -21,7 +21,7 @@ function EditProduct() {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const res = await api.get(`/api/products_details/${id}/`, {
+                const res = await api.get(`/products_details/${id}/`, {
                     headers: { Authorization: `Token ${token} ` },
                 });
                 setProduct(res.data);
@@ -54,7 +54,7 @@ function EditProduct() {
             if (imageFile) formData.append("product_image", imageFile);
 
             await api.put(
-                `/api/products_details/${id}/`,
+                `/products_details/${id}/`,
                 formData,
                 {
                     headers: { Authorization: `Token ${token}` },

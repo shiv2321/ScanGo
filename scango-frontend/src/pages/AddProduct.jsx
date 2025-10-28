@@ -50,7 +50,7 @@ const AddProduct = () => {
 
         try {
             await api.post(
-                "/api/new_product/",
+                "/new_product/",
                 formData,
                 { headers: { Authorization: `Token ${token}` } }
             );

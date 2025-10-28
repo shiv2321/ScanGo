@@ -12,19 +12,30 @@ export const CartProvider = ({ children }) => {
         if (isLoggedIn) {
             try {
                 const res = await api
-                    .get("/api/getcart/", {
+                    .get("/getcart/", {
                         headers: { Authorization: `Token ${token}` },
                     })
                     
                     const items = res.data["cart items"] || [];
-                    const flatItems = items.map((item) => ({
+                    const flatItems = items.map((item) => {
+			const backendImagePath = item.product?.product_image;
+
+			const imageUrl = backendImagePath
+			    ? backendImagePath.startsWith("http")
+			    	? backendImagePath
+			    	: backendImagePath.startsWith("/")
+			    	? backendImagePath
+			    	: "/placeholder.png"
+			    : "/placeholder.png";
+		   return {
                         id: item.id,
                         product_id : item.product?.id,
                         name: item.product?.name,
                         price: parseFloat(item.product?.price) || 0,
-                        image: "/placeholder.png",
+                        image: imageUrl,
                         quantity: item.quantity || 1,
-                    }));
+			};
+                    });
                     setCart(flatItems);
         
             } catch(err) {
@@ -34,14 +45,24 @@ export const CartProvider = ({ children }) => {
             const storedCart = localStorage.getItem('cart');
             if (storedCart) {
                 const parsed = JSON.parse(storedCart);
-                const flatItems = parsed.map((item) => ({
+                const flatItems = parsed.map((item) => {
+		    const localImagePath = item.image;
+		    const imageUrl = localImagePath
+			? localImagePath.startsWith("http")
+				? localImagePath
+				: localImagePath.startsWith("/")
+				? localImagePath
+				: "/placholder.png"
+			: "/placholder.png";
+		return {
                     id: item.id || Date.now(),
                     product_id: item.product_id || item.id,
                     name: item.name || "Product",
                     price: item.price || 0,
-                    image: "/placholder.png",
+                    image: imageUrl,
                     quantity: item.quantity || 1,
-                }));
+		}
+                });
                 setCart(flatItems);
             }
         }
@@ -57,7 +78,7 @@ export const CartProvider = ({ children }) => {
                     : { qr_code : product.qr_code, quantity: 1}
                 console.log("from add to cart func payload: ",payload);
 
-                await api.post("/api/addtocart/",
+                await api.post("/addtocart/",
                     payload,
                     { headers: { Authorization: `Token ${token}` } }
 
@@ -100,7 +121,7 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = async (id) => {
         if (isLoggedIn) {
             try {
-                await api.delete(`/api/deletecart/${id}`,
+                await api.delete(`/deletecart/${id}`,
                    { headers: {Authorization: `Token ${token}` },
                 });
                 await fetchCart();
@@ -118,7 +139,7 @@ export const CartProvider = ({ children }) => {
     const ItemDecrease = async (cartItemId) => {
         if (isLoggedIn) {
             await api.put(
-                `/api/deletecart/${cartItemId}`,
+                `/deletecart/${cartItemId}`,
                 {},
                 { headers: {Authorization: `Token ${token}`} }
             );
@@ -140,7 +161,7 @@ export const CartProvider = ({ children }) => {
         console.log("Request hit on IntemIncease")
         if (isLoggedIn){
             try {
-                await api.put("/api/addtocart/",
+                await api.put("/addtocart/",
                     { product_id: id}, 
                     {headers:{Authorization: `Token ${token}` },
                 });
@@ -164,7 +185,7 @@ export const CartProvider = ({ children }) => {
     const clearCart = async () => {
         if (isLoggedIn) {
             try {
-                await api.delete("/api/deletecart/", {
+                await api.delete("/deletecart/", {
                     headers : {Authorization: `Token ${token}` },
                 });
                 await fetchCart();
