@@ -17,7 +17,7 @@ function ProductCard({ id, name, price, image, onDelete }) {
 
     try {
       setDeleting(true);
-      await api.delete(`/products_details/${id}`, {
+      await api.delete(`/products_details/${id}/`, {
         headers: {Authorization: `Token ${token}`}
       });
 
