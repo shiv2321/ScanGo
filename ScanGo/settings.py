@@ -25,17 +25,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ekgt0$-5t7=-v5(-8kye+h$g3az9s^&dd4&gch%roda@a#_6=3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-allowed_hosts_list = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
-if 'scango_web' not in allowed_hosts_list:
-    allowed_hosts_list.append('scango_web')
-
-allowed_hosts_list.append('127.0.0.1')
-allowed_hosts_list.append('localhost')
+DEBUG = False
 
 
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_list if host.strip()]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "scango_web",
+    "scango_nginx",
+    "scango.giize.com",
+    "www.scango.giize.com",
+
+]
 
 
 
@@ -168,6 +169,8 @@ CORS_ALLOW_HEADERS = ["*"]
 CORS_ALLOW_METHODS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://scango.giize.com",
+    "https://www.scango.giize.com",
     "http://localhost:3000",
     "http://192.168.31.202:3000",  # if you open React via IP
 ]
