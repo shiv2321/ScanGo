@@ -29,13 +29,7 @@ DEBUG = False
 
 
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "scango_web",
-    "scango_nginx",
-    "scango.giize.com",
-    "www.scango.giize.com",
-
+    "*",
 ]
 
 
