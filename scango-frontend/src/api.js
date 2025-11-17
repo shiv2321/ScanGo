@@ -7,7 +7,7 @@ const isLocal =
 
 // Use the correct backend URL automatically
 const API_BASE_URL = isLocal
-    ? "http://127.0.0.1:8000"          // local mode
+    ? "http://127.0.0.1:8000"
     : "/api"; // Use Nginx proxy path in production
 
 const api = axios.create({
