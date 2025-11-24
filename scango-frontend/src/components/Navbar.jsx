@@ -7,12 +7,8 @@ import { FaQrcode, FaPlus } from "react-icons/fa";
 const Navbar = () => {
     const navigate = useNavigate();
     const { cart } = useContext(CartContext);
-    const { user, token } = useAuth();
+    const { user, token, handleLogout } = useAuth();
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        navigate("/");
-    };
 
     const cartCount = cart ? cart.reduce((s, it) => s + (it.quantity || 1), 0) : 0;
 
@@ -50,7 +46,14 @@ const Navbar = () => {
                         <FaPlus size={20}/>
                     </button>
                 )}
-                
+                {user?.role.toLowerCase() === "admin" && (
+                    <button
+                        onClick={() => navigate("/qr-management")}
+                        className="border border-white/30 px-3 py-2 rounded-xl hover:bg-white/20 transition"
+                    >
+                        Manage QR Codes
+                    </button>
+                )}
                 {user?.role.toLowerCase() !== "admin" && (
                     <button
                          onClick={() => navigate("/scan")}
@@ -59,6 +62,7 @@ const Navbar = () => {
                      >
                          <FaQrcode size={20} />
                      </button>
+                    
                 )}
                 {token ? (
                     <button

@@ -23,9 +23,8 @@ export const CartProvider = ({ children }) => {
 			const imageUrl = backendImagePath
 			    ? backendImagePath.startsWith("http")
 			    	? backendImagePath
-			    	: backendImagePath.startsWith("/")
-			    	? backendImagePath
-			    	: "/placeholder.png"
+                    : `http://localhost:8000${backendImagePath}`
+			    	
 			    : "/placeholder.png";
 		   return {
                         id: item.id,
@@ -50,9 +49,7 @@ export const CartProvider = ({ children }) => {
 		    const imageUrl = localImagePath
 			? localImagePath.startsWith("http")
 				? localImagePath
-				: localImagePath.startsWith("/")
-				? localImagePath
-				: "/placholder.png"
+				: `http://localhost:8000${localImagePath}`
 			: "/placholder.png";
 		return {
                     id: item.id || Date.now(),

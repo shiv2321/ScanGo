@@ -25,5 +25,6 @@ urlpatterns = [
 
     path('admin/users/', views.get_all_users, name='get-all-users'),    
     path('admin/orders/', views.get_all_orders, name='get-all-orders'),
+    path('management/', views.qr_code_list, name='get-all-qrs'),
     
 ]

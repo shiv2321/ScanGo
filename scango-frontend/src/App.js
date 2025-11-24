@@ -9,6 +9,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Dashboard from "./pages/Dashboard"
 import AddProduct from "./pages/AddProduct";
 import EditProduct from "./pages/EditProduct";
+import QRManagement from "./pages/QRManagement";
 
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/scan" element={<ScanPage />} />
           <Route path="/edit-product/:id" element={<EditProduct />} />
+          <Route path="/qr-management" element={<QRManagement />} />
         </Routes>
       </Router>
     </AuthProvider>

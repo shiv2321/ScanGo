@@ -50,7 +50,7 @@ class Product(models.Model):
             qr = qrcode.make(self.qr_code_value)
             buffer = BytesIO()
             qr.save(buffer, format='PNG')                
-            filename = f'qr_code_{self.name}.png'
+            filename = f'qr_{self.id}_{self.qr_code_value}.png'
 
             self.qr_code_img.save(filename, File(buffer), save=False)
             super().save(update_fields=['qr_code_img'])

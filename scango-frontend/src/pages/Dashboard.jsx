@@ -2,9 +2,8 @@ import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-
 const Dashboard = () => {
-    const { user, handleLogout } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     return (
@@ -15,31 +14,26 @@ const Dashboard = () => {
                 </h1>
 
                 <p className="text-center text-gray-600 mb-8">
-                    You are using in as{" "}
+                    You are logged in as{" "}
                     <span className="font-semibold text-blue-600">
-                        {user?.role?.toUpperCase() || "Guest"}
+                        {user?.role?.toUpperCase() || "GUEST"}
                     </span>
                 </p>
 
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
-                    {/* Visible to everyone */}
+                    {/* Visible to all users */}
                     <button
-                        onClick={() => navigate("/Products")}
+                        onClick={() => navigate("/products")}
                         className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition"
                     >
                         View Products
                     </button>
 
-                    <button
-                        onClick={handleLogout}
-                        className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition"
-                    >
-                        Logout
-                    </button>
-                    {user?.role.toLowerCase() !== "admin" && (
-                        <button                   
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={() => navigate("/scan")}
+                    {/* Hide scan button for admin */}
+                    {user?.role?.toLowerCase() !== "admin" && (
+                        <button
+                            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                            onClick={() => navigate("/scan")}
                         >
                             Scan QR Code
                         </button>
@@ -48,6 +42,6 @@ const Dashboard = () => {
             </div>
         </div>
     );
+};
 
-}
 export default Dashboard;

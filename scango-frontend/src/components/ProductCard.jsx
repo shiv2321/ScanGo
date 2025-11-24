@@ -29,13 +29,7 @@ function ProductCard({ id, name, price, image, onDelete }) {
       setDeleting(false);
     }
   };
-  const imageUrl = image
-    ? image.startsWith("http")
-      ? image
-      : image.startsWith("/")
-      ? image
-      : "/placeholder.png"
-    : "/placeholder.png";
+  const imageUrl = image.startsWith("http")? image : `http://localhost:8000${image}`;
   
   return (
     <div className="relative border rounded-2xl shadow p-4 w-64 bg-white hover:shadow-lg transition">
@@ -55,6 +49,7 @@ function ProductCard({ id, name, price, image, onDelete }) {
         className="h-48 w-full object-contain rounded-xl bg-gray-50 p-2"
         onError={(e) => {
 		console.error("Failed To Load Image: ",imageUrl);
+    e.target.onerror = null;
 		e.target.src = "/placeholder.png";
 	    }
 	}

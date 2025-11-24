@@ -310,3 +310,10 @@ def verify_otp(request):
     
     if flag:
         return Response({'verified':flag, 'message':message})
+    
+
+@api_view(['GET'])
+def qr_code_list(request):
+    products = Product.objects.all()
+    serializer = ProductSerializer(products, many=True, context={'request':request})
+    return Response(serializer.data)
