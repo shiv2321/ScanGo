@@ -10,8 +10,7 @@ function Home() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        api
-            .get("/products/"
+        api.get("/products/"
             )
             .then((res) => {
                 setProducts(res.data);
