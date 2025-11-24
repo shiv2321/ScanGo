@@ -21,3 +21,9 @@ media/
 .DS_Store
 Thumbs.db
 
+docker-compose.yml
+docker-compose.yml_backk
+nginx.conf_backk
+webroot/.well-known/
+
+
